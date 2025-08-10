@@ -1,9 +1,5 @@
 const std = @import("std");
 
-const gameError = error{
-    InputError,
-};
-
 const gamestatus = enum { running, win1, win2, draw };
 
 fn drawBoard(board: *[3][3]u8) void {
@@ -41,8 +37,34 @@ fn makeChoice(board: *[3][3]u8, choice: u8, turn: bool) !void {
     }
 }
 
-fn checkWin() gamestatus {
-    return gamestatus.draw;
+fn checkWin(board: [3][3]u8) gamestatus {
+    for (0..3) |i| {
+        if (board[i][0] == board[i][1] and board[i][1] == board[i][2]) {
+            if (board[i][0] == 'X') return .win1;
+            if (board[i][0] == 'O') return .win2;
+        }
+        if (board[0][i] == board[1][i] and board[1][i] == board[2][i]) {
+            if (board[0][i] == 'X') return .win1;
+            if (board[0][i] == 'O') return .win2;
+        }
+    }
+
+    if (board[0][0] == board[1][1] and board[1][1] == board[2][2]) {
+        if (board[0][0] == 'X') return .win1;
+        if (board[0][0] == 'O') return .win2;
+    }
+    if (board[0][2] == board[1][1] and board[1][1] == board[2][0]) {
+        if (board[0][2] == 'X') return .win1;
+        if (board[0][2] == 'O') return .win2;
+    }
+
+    for (board) |row| {
+        for (row) |cell| {
+            if (cell != 'X' and cell != 'O') return .running;
+        }
+    }
+
+    return .draw;
 }
 
 pub fn main() !void {
@@ -66,7 +88,23 @@ pub fn main() !void {
         const choice = try getPlayerInput();
         try makeChoice(&board, choice, turn);
         turn = !turn;
-        status = checkWin();
+        status = checkWin(board);
+        switch (status) {
+            .win1 => {
+                std.debug.print("Player 1 wins!\n", .{});
+                drawBoard(&board);
+            },
+            .win2 => {
+                std.debug.print("Player 2 wins!\n", .{});
+                drawBoard(&board);
+            },
+            .draw => {
+                std.debug.print("draw!\n", .{});
+                drawBoard(&board);
+            },
+            else => {
+                continue;
+            },
+        }
     }
-    std.debug.print("hello {s}", .{"world"});
 }
